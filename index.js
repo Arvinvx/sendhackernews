@@ -1,4 +1,5 @@
 require('dotenv').config();
+const http = require('http');
 const TelegramBot = require('node-telegram-bot-api');
 const OpenAI = require('openai');
 const axios = require('axios');
@@ -151,6 +152,13 @@ async function main() {
     console.error('ERROR: Fill in OPENAI_API_KEY in .env');
     process.exit(1);
   }
+
+  // HTTP server required by Render Web Service health checks
+  const port = process.env.PORT || 3000;
+  http.createServer((_, res) => {
+    res.writeHead(200);
+    res.end('HackerNews bot is running');
+  }).listen(port, () => console.log(`Health check server on port ${port}`));
 
   console.log('HackerNews Telegram Bot starting…');
   await poll();
