@@ -1,14 +1,37 @@
 # HackerNews Telegram Bot
 
-Monitors HackerNews for new stories every 2 minutes, summarizes each article with OpenAI, and sends it to you on Telegram.
+Monitors the HackerNews front page every 3 hours and sends you top-ranked stories via Telegram — with an AI summary of the article. Silent at night (Istanbul time).
 
-## Features
+## What it does
 
-- Detects new HackerNews stories in near real-time (polls every 2 min)
-- Fetches the full article and extracts readable text
-- Summarizes with `gpt-4o-mini` in 3–4 sentences
-- Sends a formatted message to Telegram with article link + HN discussion link
-- On first boot, sends the 5 most recent stories immediately
+- Watches the **top 50 HackerNews stories** (front page, quality content only)
+- Sends a story when it enters the top 50 and has **score ≥ 100**
+- Fetches the actual article and summarizes it with `gpt-4o-mini`
+- **Silent 3am–9am Istanbul time** — no notifications while you sleep
+- On first boot, immediately sends your top 5 picks
+
+## Customization
+
+All settings are at the top of `index.js`:
+
+```js
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const POLL_INTERVAL_MS = 3 * 60 * 60 * 1000; // how often to check HN (default: 3 hours)
+const TOP_N_STORIES    = 50;                  // how many top stories to track
+const MIN_SCORE        = 100;                 // only send stories with at least this score
+const QUIET_START_HOUR = 3;                   // quiet hours start (Istanbul time, 24h)
+const QUIET_END_HOUR   = 9;                   // quiet hours end   (Istanbul time, 24h)
+const TIMEZONE         = 'Europe/Istanbul';   // your timezone
+```
+
+| Setting | What it does |
+|---|---|
+| `POLL_INTERVAL_MS` | How often to check. `1 * 60 * 60 * 1000` = every 1 hour |
+| `TOP_N_STORIES` | How many top stories to watch. Max is 500 |
+| `MIN_SCORE` | Minimum upvotes before sending. Raise it for higher quality only |
+| `QUIET_START_HOUR` | Hour to stop sending (24h format). `3` = 3am |
+| `QUIET_END_HOUR` | Hour to resume sending. `9` = 9am |
+| `TIMEZONE` | Any valid IANA timezone, e.g. `America/New_York`, `UTC` |
 
 ## Setup
 
@@ -46,7 +69,7 @@ node index.js
 
 1. Go to [render.com](https://render.com) → **New** → **Web Service**
 2. Connect this GitHub repo
-3. Use these settings:
+3. Settings:
 
 | Setting | Value |
 |---|---|
@@ -57,11 +80,9 @@ node index.js
 4. Add the 3 environment variables under the **Environment** tab
 5. Click **Deploy**
 
-Render's health check hits the HTTP server on `PORT` — the bot keeps running alongside it.
-
 ## Stack
 
-- [HackerNews Firebase API](https://github.com/HackerNews/API) — real-time story feed
+- [HackerNews API](https://github.com/HackerNews/API) — top stories feed
 - [node-telegram-bot-api](https://github.com/yagop/node-telegram-bot-api) — Telegram messaging
 - [OpenAI SDK](https://github.com/openai/openai-node) — `gpt-4o-mini` summaries
-- [cheerio](https://cheerio.js.org/) — HTML content extraction
+- [cheerio](https://cheerio.js.org/) — article text extraction
