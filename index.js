@@ -9,15 +9,15 @@ const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const HN_API = 'https://hacker-news.firebaseio.com/v0';
-const POLL_INTERVAL_MS = 2 * 60 * 1000; // check every 2 minutes
+const POLL_INTERVAL_MS = 5 * 60 * 1000; // check every 5 minutes
 const MAX_SEEN = 2000;                    // cap memory usage
 const SEND_DELAY_MS = 3000;              // pause between Telegram messages
 
 const seenIds = new Set();
 
-async function getNewStoryIds() {
-  const { data } = await axios.get(`${HN_API}/newstories.json`, { timeout: 10000 });
-  return data; // newest-first array of IDs
+async function getTopStoryIds() {
+  const { data } = await axios.get(`${HN_API}/topstories.json`, { timeout: 10000 });
+  return data.slice(0, 30); // front page top 30
 }
 
 async function getStory(id) {
@@ -91,7 +91,7 @@ async function sendStory(story) {
 
 async function poll() {
   try {
-    const ids = await getNewStoryIds();
+    const ids = await getTopStoryIds();
 
     // First run: send the 5 most recent stories, then seed the rest
     if (seenIds.size === 0) {
